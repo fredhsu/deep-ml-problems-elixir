@@ -18,20 +18,62 @@ defmodule DeepML do
   def matrix_vector_dot_product(a,b) do
       Enum.map(a, fn row -> dotproduct(row, b) end)
   end
+  def cosine_similarity(a,b) do
+    norm = &(:math.sqrt(dotproduct(&1,&1)))
+    dotproduct(a,b)/(norm.(a)*norm.(b))
+  end
+
+  def calculate_matrix_mean(matrix, "row") do
+    Enum.map(matrix,fn x->Enum.sum(x)/length(x)end)
+  end
+  def calculate_matrix_mean(matrix, _) do
+    transpose(matrix)
+      |>calculate_matrix_mean("row")
+  end
+
+  def calculate_eigenvalues(matrix) do
+    x = List.flatten(matrix)
+    diag1 = matrix
+      |> Enum.with_index()
+      |> Enum.map(fn {row, i} -> Enum.at(row, i) end)
+    diag2 = matrix
+      |> Enum.with_index()
+      |> Enum.map(fn {row, i} -> Enum.at(row, length(row) - 1 - i) end)
+
+    IO.inspect diag1
+    IO.inspect diag2
+    trace = Enum.sum(diag1)
+    b = -trace
+    det = Enum.product(diag1) - Enum.product(diag2)
+    root1 = (-1*b + :math.sqrt(:math.pow(b,2)-4*det)) / 2
+    root2 = (-1*b - :math.sqrt(:math.pow(b,2)-4*det)) / 2
+    [root1,root2]
+  end
 
   def test() do
     vec1 = [1,2,3]
     vec2 = [4,5,6]
     vec3 = [1,2]
+    vec4 = [1, 0, 7]
+    vec5 = [0, 1, 3]
     matrix1 = [[1,2],[2,4]]
     matrix2 = [vec1,vec2]
     matrix3 = [[0,-1],[1,0]]
+    matrix4 = [[2,1],[1,2]]
+    matrix5 = [[4,-2],[1,1]]
 
     assert dotproduct(vec1, vec2)==32
     IO.inspect(matrix_vector_dot_product(matrix1, vec3))
     IO.inspect(transpose(matrix2))
     assert scalar_multiply(matrix1, 2)==[[2, 4], [4, 8]]
     assert scalar_multiply(matrix3, -1)==[[0, 1], [-1, 0]]
+    assert Float.round(cosine_similarity(vec4, vec5),3) == 0.939
+
+    assert calculate_matrix_mean(matrix2, "row") == [2.0,5.0]
+    assert calculate_matrix_mean([[1, 2, 3, 4], [5, 6, 7, 8]], "column") == [3.0,4.0,5.0,6.0]
+
+    assert calculate_eigenvalues(matrix4) == [3.0,1.0]
+    assert calculate_eigenvalues(matrix5) == [3.0,2.0]
   end
 
 end
