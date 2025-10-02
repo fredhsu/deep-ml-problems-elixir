@@ -30,9 +30,17 @@ defmodule DeepML do
     transpose(matrix)
       |>calculate_matrix_mean("row")
   end
-
+  def get_diagonal(matrix) do
+    matrix
+      |> Enum.with_index()
+      |> Enum.map(fn {row, i} -> Enum.at(row, i) end)
+  end
+  def get_anti_diagonal(matrix) do
+    matrix
+      |> Enum.with_index()
+      |> Enum.map(fn {row, i} -> Enum.at(row, length(row) - 1 - i) end)
+  end
   def calculate_eigenvalues(matrix) do
-    x = List.flatten(matrix)
     diag1 = matrix
       |> Enum.with_index()
       |> Enum.map(fn {row, i} -> Enum.at(row, i) end)
@@ -48,6 +56,21 @@ defmodule DeepML do
     root1 = (-1*b + :math.sqrt(:math.pow(b,2)-4*det)) / 2
     root2 = (-1*b - :math.sqrt(:math.pow(b,2)-4*det)) / 2
     [root1,root2]
+  end
+  def inverse_2x2(matrix) do
+    a = Enum.at(matrix, 0)
+      |> Enum.at(0)
+    b = Enum.at(matrix, 0)
+      |> Enum.at(1)
+    c = Enum.at(matrix, 1)
+      |> Enum.at(0)
+    d = Enum.at(matrix, 1)
+      |> Enum.at(1)
+    det = a*d - b*c
+    [
+      Enum.map([d,-b],&(&1 * 1/det)),
+      Enum.map([-c,a],&(&1 * 1/det))
+    ]
   end
 
   def test() do
@@ -74,6 +97,8 @@ defmodule DeepML do
 
     assert calculate_eigenvalues(matrix4) == [3.0,1.0]
     assert calculate_eigenvalues(matrix5) == [3.0,2.0]
+
+    assert inverse_2x2([[2,1],[6,2]]) == [[-1,0.5],[3.0,-1.0]]
   end
 
 end
